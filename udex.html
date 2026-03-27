@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>7th Grade Neon Terminal</title>
+    <style>
+        :root {
+            --neon-blue: #0ff;
+            --neon-pink: #f0f;
+            --neon-green: #0f0;
+            --neon-red: #f00;
+        }
+
+        body { 
+            font-family: 'Courier New', Courier, monospace; 
+            text-align: center; 
+            background-color: #0a0a0a; 
+            color: #fff;
+            padding: 20px; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 90vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        .box { 
+            background: #111; 
+            padding: 30px; 
+            border-radius: 15px; 
+            max-width: 600px; 
+            width: 100%;
+            margin: auto; 
+            border: 2px solid #fff;
+            animation: rgb-glow 5s linear infinite; 
+            position: relative;
+        }
+
+        #status-light {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--neon-red);
+            box-shadow: 0 0 10px var(--neon-red);
+        }
+
+        .status-text {
+            position: absolute;
+            top: 30px;
+            right: 10px;
+            font-size: 10px;
+            color: #666;
+        }
+
+        .hidden { display: none !important; }
+
+        h1, h2, h3 {
+            text-shadow: 0 0 10px var(--neon-blue);
+            margin-bottom: 20px;
+        }
+
+        button { 
+            background: #000; 
+            color: #fff; 
+            border: 2px solid #fff; 
+            padding: 12px 25px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 18px; 
+            font-weight: bold;
+            margin: 15px; 
+            text-transform: uppercase;
+            animation: rgb-glow 5s linear infinite;
+        }
+
+        textarea, input { 
+            width: 90%; 
+            margin: 10px 0; 
+            padding: 12px; 
+            background: #1a1a1a;
+            color: var(--neon-blue);
+            border: 1px solid #333; 
+            border-radius: 5px; 
+            font-family: 'Courier New', Courier, monospace;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        /* Success Animation */
+        .success-flash {
+            animation: success-blink 0.5s ease-in-out infinite alternate;
+            padding: 15px;
+            border: 3px solid var(--neon-green);
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        @keyframes success-blink {
+            from { box-shadow: 0 0 5px var(--neon-green); transform: scale(1); }
+            to { box-shadow: 0 0 25px var(--neon-green); transform: scale(1.02); }
+        }
+
+        .video-container {
+            width: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 2px solid #fff;
+            animation: rgb-glow 5s linear infinite;
+        }
+
+        video { width: 100%; display: block; }
+
+        .quack-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        @keyframes rgb-glow {
+            0%   { border-color: #ff0000; box-shadow: 0 0 15px #ff0000; }
+            33%  { border-color: #0000ff; box-shadow: 0 0 15px #0000ff; }
+            66%  { border-color: #00ff00; box-shadow: 0 0 15px #00ff00; }
+            100% { border-color: #ff0000; box-shadow: 0 0 15px #ff0000; }
+        }
+    </style>
+</head>
+<body onload="checkServer()">
+
+    <div class="box">
+        <div id="status-light"></div>
+        <div class="status-text" id="status-label">OFFLINE</div>
+
+        <div id="step1">
+            <h1>SYSTEM ARMED</h1>
+            <h2 style="color: var(--neon-pink);">7th Grade Memories</h2>
+            <button onclick="showStep(2)">INITIALIZE SEQUENCE</button>
+        </div>
+
+        <div id="step2" class="hidden">
+            <h2>TRANSMISSION INCOMING...</h2>
+            <div class="video-container">
+                <video controls>
+                    <source src="weee.mp4" type="video/mp4">
+                </video>
+            </div>
+            <button onclick="showStep(3)">ACCESS DATA LOGS</button>
+        </div>
+
+        <div id="step3" class="hidden">
+            <h2>LOG YOUR MEMORY</h2>
+            <input type="text" id="name" placeholder="ENTER USERNAME...">
+            <textarea id="msg" rows="4" placeholder="ENTER 7TH GRADE EXPERIENCE..."></textarea>
+            <button onclick="postData()">UPLOAD TO PC</button>
+            
+            <div id="successArea" class="hidden success-flash">
+                <h3 style="color: var(--neon-green); margin:0;">✓ DATA LOGGED SUCCESSFULLY</h3>
+                <p style="font-size: 10px;">The host has received your transmission.</p>
+                <div class="quack-container">
+                    <iframe width="110" height="200" src="https://www.myinstants.com/instant/mac-quack-83896/embed/" frameborder="0" scrolling="no"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // YOUR PERMANENT NGROK LINK
+        const SERVER_URL = "https://kory-untortured-reversibly.ngrok-free.dev";
+
+        function showStep(num) {
+            document.querySelectorAll('.box > div:not(#status-light):not(.status-text)').forEach(div => div.classList.add('hidden'));
+            document.getElementById('step' + num).classList.remove('hidden');
+        }
+
+        async function checkServer() {
+            try {
+                // Testing connection to your Flask app
+                const res = await fetch(SERVER_URL + '/upload', { method: 'OPTIONS' });
+                document.getElementById('status-light').style.background = '#0f0';
+                document.getElementById('status-light').style.boxShadow = '0 0 15px #0f0';
+                document.getElementById('status-label').innerText = 'ONLINE';
+                document.getElementById('status-label').style.color = '#0f0';
+            } catch (e) {
+                console.log("Server currently offline.");
+            }
+        }
+
+        async function postData() {
+            const nameVal = document.getElementById('name').value;
+            const msgVal = document.getElementById('msg').value;
+
+            if(!nameVal || !msgVal) return alert("ERROR: ALL FIELDS REQUIRED.");
+
+            try {
+                const response = await fetch(SERVER_URL + '/upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: nameVal, message: msgVal })
+                });
+
+                if(response.ok) {
+                    document.getElementById('successArea').classList.remove('hidden');
+                    // We keep the quack button visible but clear text
+                    document.getElementById('name').value = '';
+                    document.getElementById('msg').value = '';
+                }
+            } catch (error) {
+                alert("CONNECTION FAILED: Make sure Flask and ngrok are running on your laptop!");
+            }
+        }
+    </script>
+</body>
+</html>
